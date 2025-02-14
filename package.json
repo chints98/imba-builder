@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build": "imba build.imba",
-    "serve": "http-server dist"
+    "serve": "browser-sync start --server 'dist' --files 'dist'",
+    "serve:http-server": "http-server dist",
+    "dev:build": "nodemon --watch pages --watch src --ext imba --exec \"npm run build\"",
+    "dev": "concurrently \"npm run dev:build\" \"npm run serve\""
   },
   "keywords": [],
   "author": "",
@@ -16,7 +19,10 @@
     "vite-plugin-imba": "^0.10.3"
   },
   "devDependencies": {
-    "vite-node": "^0.34.3",
-    "http-server": "latest"
+    "browser-sync": "^3.0.3",
+    "concurrently": "^9.1.2",
+    "http-server": "latest",
+    "nodemon": "^3.1.9",
+    "vite-node": "^0.34.3"
   }
 }

@@ -1,7 +1,7 @@
 # this exists purely so that the build script has something with all pages included in it
 # so that it can generate one CSS file that covers all pages...
 
-const pages = import.meta.glob("./pages/*.imba", {eager: true})
+const pages = import.meta.glob("./pages/**/*.imba", {eager: true})
 
 const pageList = pages..map do(page) return page.default
 

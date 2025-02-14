@@ -2,7 +2,7 @@ const fs = require("fs-extra")
 const childProcess = require("child_process")
 const exec = require("util").promisify(childProcess.exec)
 
-const pages = import.meta.glob("./pages/*.imba", {eager: true})
+const pages = import.meta.glob("./pages/**/*.imba", {eager: true})
 
 # This function defines an html page layout, it accepts a function which
 # returns the page content (usually a single custom tag)
@@ -35,10 +35,21 @@ def getCssJsPathsFromManifest
 	const manifest = JSON.parse(data)
 	const stylesheetPath = manifest["index.css"].file
 
-	# can we generate a unique js file for each page? and one for global?
-	const javascriptPath = manifest["index.html"].file
-	console.log { stylesheetPath, javascriptPath }
-	return { stylesheetPath, javascriptPath }
+	# Try to get the JS entry from "index.js"; if it doesn't exist, fall back to "index.html" only if it ends with ".js". This fixes the 'counter component' not appearing on a nested page.
+	let javascriptPath = ""
+	if manifest["index.js"]
+		javascriptPath = manifest["index.js"].file
+	else if manifest["index.html"] and manifest["index.html"].file.endsWith(".js")
+		javascriptPath = manifest["index.html"].file
+
+	# Ensure the paths are absolute by prepending a slash if missing
+	let absStylesheetPath = stylesheetPath[0] == '/' ? stylesheetPath : "/" + stylesheetPath
+	let absJavascriptPath = ""
+	if javascriptPath
+		absJavascriptPath = javascriptPath[0] == '/' ? javascriptPath : "/" + javascriptPath
+
+	console.log { stylesheetPath: absStylesheetPath, javascriptPath: absJavascriptPath }
+	return { stylesheetPath: absStylesheetPath, javascriptPath: absJavascriptPath }
 
 # given a page tag, stick it in the layout, and add the stylesheet path
 def assemblePageInLayout page, stylesheetPath, javascriptPath
@@ -53,7 +64,7 @@ def writeSSRPage page, filename
 	const directory = "{__dirname}/dist"
 	const fullPath = "{directory}/{filename}"
 	if await fs.pathExists(directory)
-		fs.writeFile fullPath, String(page)
+		fs.outputFile fullPath, String(page)
 		return fullPath
 
 # given pages in the form {filename: "index.html", tagInstance: <HomePage>}, build them and write them
